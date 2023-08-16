@@ -328,11 +328,12 @@ class InputLogic
      */
     // Called from {@link SuggestionStripView} through the {@link SuggestionStripView#Listener}
     // interface
-    fun onPickSuggestionManually(settingsValues: SettingsValues,
+    fun (settingsValues: SettingsValues,
                                  suggestionInfo: SuggestedWordInfo, keyboardShiftState: Int,
                                  currentKeyboardScriptId: Int, handler: LatinIME.UIHandler): InputTransaction {
         val suggestedWords = mSuggestedWords
         val suggestion = suggestionInfo.word
+        val lastCharacter = suggestion.last()
         // If this is a punctuation picked from the suggestion strip, pass it to onCodeInput
         if (suggestion.length == 1 && suggestedWords.isPunctuationSuggestions) {
             // We still want to log a suggestion click.
@@ -352,7 +353,9 @@ class InputLogic
         // for the sequence of language switching.
         inputTransaction.setDidAffectContents()
         mConnection.beginBatchEdit()
-        if (SpaceState.PHANTOM == mSpaceState && suggestion.isNotEmpty()
+        
+        // Comment to change functioning for Cree 
+        /* if (SpaceState.PHANTOM == mSpaceState && suggestion.isNotEmpty()
                 // In the batch input mode, a manually picked suggested word should just replace
                 // the current batch input text and there is no need for a phantom space.
                 && !wordComposer.isBatchMode) {
@@ -361,6 +364,17 @@ class InputLogic
                 insertAutomaticSpaceIfOptionsAndTextAllow(settingsValues)
             }
         }
+        */
+        if (SpaceState.PHANTOM == mSpaceState && suggestion.isNotEmpty()
+                // In the batch input mode, a manually picked suggested word should just replace
+                // the current batch input text and there is no need for a phantom space.
+                && !wordComposer.isBatchMode) {
+            val firstChar = Character.codePointAt(suggestion, 0)
+            if (lastCharacter != '~'){
+                insertAutomaticSpaceIfOptionsAndTextAllow(settingsValues)
+            }
+        }
+
 
         // TODO: We should not need the following branch. We should be able to take the same
         // code path as for other kinds, use commitChosenWord, and do everything normally. We will
@@ -923,7 +937,7 @@ class InputLogic
             }
         }
         inputTransaction.setRequiresUpdateSuggestions()
-    }
+    } 
 
     /**
      * Handle input of a separator code point.
